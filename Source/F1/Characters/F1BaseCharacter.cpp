@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "F1/Input/F1InputSettings.h"
+#include "GameFramework/SpringArmComponent.h"
 
 DEFINE_LOG_CATEGORY(F1LogBaseCharacter);
 
@@ -12,8 +13,12 @@ AF1BaseCharacter::AF1BaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
+	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->bUsePawnControlRotation = true;
+
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
-	CameraComponent->SetupAttachment(RootComponent);
+	CameraComponent->SetupAttachment(SpringArmComponent);
 }
 
 void AF1BaseCharacter::BeginPlay()

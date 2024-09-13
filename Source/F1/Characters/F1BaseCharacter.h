@@ -7,11 +7,12 @@
 #include "Logging/LogMacros.h"
 #include "F1BaseCharacter.generated.h"
 
-struct FInputActionValue;
-class UF1InputSettings;
-DECLARE_LOG_CATEGORY_EXTERN(F1LogBaseCharacter, Log, All);
-
 class UCameraComponent;
+class UF1InputSettings;
+class USpringArmComponent;
+struct FInputActionValue;
+
+DECLARE_LOG_CATEGORY_EXTERN(F1LogBaseCharacter, Log, All);
 
 UCLASS()
 class AF1BaseCharacter : public ACharacter
@@ -30,6 +31,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
+	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "F1|Input")
