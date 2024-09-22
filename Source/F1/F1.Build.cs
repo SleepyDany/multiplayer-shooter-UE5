@@ -13,6 +13,7 @@ public class F1 : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"EnhancedInput",
 		});
 	}
 }
