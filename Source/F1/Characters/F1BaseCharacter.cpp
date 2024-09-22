@@ -5,6 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "F1/Input/F1InputSettings.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 DEFINE_LOG_CATEGORY(F1LogBaseCharacter);
@@ -24,6 +26,11 @@ AF1BaseCharacter::AF1BaseCharacter()
 void AF1BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		MovementComponent->bNotifyApex = true;
+	}
 
 	if (const TObjectPtr<APlayerController> PlayerController = GetController<APlayerController>())
 	{
@@ -58,6 +65,11 @@ void AF1BaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EnhancedInputComponent->BindAction(InputSettings->MoveAction, ETriggerEvent::Triggered, this, &AF1BaseCharacter::Move);
 		}
+
+		if (InputSettings->JumpAction)
+		{
+			EnhancedInputComponent->BindAction(InputSettings->JumpAction, ETriggerEvent::Triggered, this, &AF1BaseCharacter::TryJump);
+		}
 	}
 }
 
@@ -89,4 +101,23 @@ void AF1BaseCharacter::Move(const FInputActionValue& Value)
 
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	AddMovementInput(RightDirection, MoveDirection.X);
+}
+
+void AF1BaseCharacter::TryJump()
+{
+	const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
+	check(MovementComponent);
+
+	if (bStartJump || MovementComponent->IsFalling())
+		return;
+
+	MovementComponent->bNotifyApex = true;
+	bStartJump = true;
+}
+
+void AF1BaseCharacter::NotifyJumpApex()
+{
+	bStartJump = false;
+
+	Super::NotifyJumpApex();
 }

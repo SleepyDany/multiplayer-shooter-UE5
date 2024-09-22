@@ -28,11 +28,16 @@ protected:
 
 	void Look(const FInputActionValue& Value);
 	void Move(const FInputActionValue& Value);
+	void TryJump();
+	virtual void NotifyJumpApex() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "F1|Movement")
+	bool bStartJump = false;
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "F1|Input")
