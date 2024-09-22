@@ -30,6 +30,7 @@ void AF1BaseCharacter::BeginPlay()
 	if (const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
 	{
 		MovementComponent->bNotifyApex = true;
+		DefaultMaxSpeed = MovementComponent->MaxWalkSpeed;
 	}
 
 	if (const TObjectPtr<APlayerController> PlayerController = GetController<APlayerController>())
@@ -70,6 +71,17 @@ void AF1BaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EnhancedInputComponent->BindAction(InputSettings->JumpAction, ETriggerEvent::Triggered, this, &AF1BaseCharacter::TryJump);
 		}
+
+		if (InputSettings->WalkAction)
+		{
+			EnhancedInputComponent->BindAction(InputSettings->WalkAction, ETriggerEvent::Triggered, this, &AF1BaseCharacter::Walk);
+		}
+
+		if (InputSettings->SprintAction)
+		{
+			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Started, this, &AF1BaseCharacter::StartSprint);
+			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Completed, this, &AF1BaseCharacter::StopSprint);
+		}
 	}
 }
 
@@ -103,6 +115,21 @@ void AF1BaseCharacter::Move(const FInputActionValue& Value)
 	AddMovementInput(RightDirection, MoveDirection.X);
 }
 
+FVector AF1BaseCharacter::GetMovementVelocity2D() const
+{
+	const FVector Velocity = GetVelocity();
+	const FVector Forward = GetActorForwardVector();
+	const FVector Right = GetActorRightVector();
+
+	const FVector FVelocityVector = Velocity.ProjectOnTo(Forward);
+	const FVector RVelocityVector = Velocity.ProjectOnTo(Right);
+
+	const float FVelocity = FVelocityVector.Size2D() * FMath::Sign(FVelocityVector.Dot(Forward));
+	const float RVelocity = RVelocityVector.Size2D() * FMath::Sign(RVelocityVector.Dot(Right));
+
+	return {RVelocity, FVelocity, 0};
+}
+
 void AF1BaseCharacter::TryJump()
 {
 	const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent());
@@ -120,4 +147,39 @@ void AF1BaseCharacter::NotifyJumpApex()
 	bStartJump = false;
 
 	Super::NotifyJumpApex();
+}
+
+void AF1BaseCharacter::Walk()
+{
+	bIsWalking = !bIsWalking;
+
+	if (const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()); MovementComponent && !bIsSprinting)
+	{
+		auto& CurSpeed = MovementComponent->MaxWalkSpeed;
+
+		CurSpeed = bIsWalking ? DefaultMaxSpeed * WalkMultiplier : DefaultMaxSpeed;
+	}
+}
+
+void AF1BaseCharacter::StartSprint()
+{
+	bIsSprinting = true;
+
+	// TODO: Smooth speed acceleration?
+	if (const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		MovementComponent->MaxWalkSpeed = DefaultMaxSpeed * SprintMultiplier;
+	}
+}
+
+void AF1BaseCharacter::StopSprint()
+{
+	bIsSprinting = false;
+
+	// TODO: Smooth speed acceleration?
+	if (const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		auto& CurSpeed = MovementComponent->MaxWalkSpeed;
+		CurSpeed = bIsWalking ? DefaultMaxSpeed * WalkMultiplier : DefaultMaxSpeed;
+	}
 }

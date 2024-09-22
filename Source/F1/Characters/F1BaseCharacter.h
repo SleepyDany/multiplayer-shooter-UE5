@@ -28,8 +28,13 @@ protected:
 
 	void Look(const FInputActionValue& Value);
 	void Move(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable, meta = (ToolTip = "X - Right velocity, Y - Forward velocity, Z = 0"))
+	FVector GetMovementVelocity2D() const;
 	void TryJump();
 	virtual void NotifyJumpApex() override;
+	void Walk();
+	void StartSprint();
+	void StopSprint();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
@@ -39,7 +44,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "F1|Movement")
 	bool bStartJump = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "F1|Movement")
+	bool bIsWalking = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "F1|Movement")
+	float WalkMultiplier = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "F1|Movement")
+	bool bIsSprinting = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "F1|Movement")
+	float SprintMultiplier = 1.75f;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "F1|Input")
 	TObjectPtr<UF1InputSettings> InputSettings;
+
+	float DefaultMaxSpeed = 0.0f; 
 };

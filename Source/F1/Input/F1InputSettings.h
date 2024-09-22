@@ -22,6 +22,10 @@ public:
 	TObjectPtr<UInputAction> JumpAction;
 	UPROPERTY(EditAnywhere, Category = "Actions")
 	TObjectPtr<UInputAction> CrouchAction;
+	UPROPERTY(EditAnywhere, Category = "Actions")
+	TObjectPtr<UInputAction> WalkAction;
+	UPROPERTY(EditAnywhere, Category = "Actions")
+	TObjectPtr<UInputAction> SprintAction;
 
 	UPROPERTY(EditAnywhere, Category = "MappingContext")
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
