@@ -17,7 +17,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void StartHeal();
-	
+
 	UFUNCTION(BlueprintCallable)
 	float GetHealth() const;
 	UFUNCTION(BlueprintCallable)
@@ -51,7 +51,7 @@ protected:
 
 private:
 	void SetHealth(float NewHealth);
-	
+
 	float Health = 0.0f;
 
 	FTimerHandle HealTimer;

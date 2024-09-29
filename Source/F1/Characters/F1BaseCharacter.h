@@ -30,12 +30,12 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	void Look(const FInputActionValue& Value);
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "F1|Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
-	
+
 	void Move(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable, meta = (ToolTip = "X - Right velocity, Y - Forward velocity, Z = 0"))
 	FVector GetMovementVelocity2D() const;
@@ -46,7 +46,7 @@ protected:
 	void Walk();
 	void StartSprint();
 	void StopSprint();
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "F1|Movement")
 	bool bStartJump = false;
 	UPROPERTY(EditDefaultsOnly, Category = "F1|Damage|Movement")
@@ -62,7 +62,7 @@ protected:
 	bool bIsSprinting = false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "F1|Movement")
 	float SprintMultiplier = 1.75f;
-	
+
 	UFUNCTION()
 	void OnHealthChangedHandler(float OldHealth, float NewHealth);
 	UFUNCTION()
@@ -80,7 +80,7 @@ private:
 	float DefaultMaxSpeed = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "F1|Damage", meta = (UIMin = 0, ClampMin = 0))
-	float DeathLifeSpan = 3.5f; 
+	float DeathLifeSpan = 3.5f;
 	UPROPERTY(EditDefaultsOnly, Category = "F1|Animations")
 	TObjectPtr<UAnimMontage> DeathAnimMontage;
 };
