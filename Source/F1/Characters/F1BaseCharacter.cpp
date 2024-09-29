@@ -79,7 +79,7 @@ void AF1BaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		if (InputSettings->SprintAction)
 		{
-			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Started, this, &AF1BaseCharacter::StartSprint);
+			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Triggered, this, &AF1BaseCharacter::StartSprint);
 			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Completed, this, &AF1BaseCharacter::StopSprint);
 		}
 	}
@@ -163,6 +163,11 @@ void AF1BaseCharacter::Walk()
 
 void AF1BaseCharacter::StartSprint()
 {
+	if (bIsSprinting)
+	{
+		return;
+	}
+
 	bIsSprinting = true;
 
 	// TODO: Smooth speed acceleration?
