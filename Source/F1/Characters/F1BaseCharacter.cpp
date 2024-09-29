@@ -3,10 +3,12 @@
 
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "Engine/DamageEvents.h"
 #include "EnhancedInput/Public/EnhancedInputSubsystems.h"
+#include "F1/Components/F1HealthComponent.h"
 #include "F1/Input/F1InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 DEFINE_LOG_CATEGORY(F1LogBaseCharacter);
@@ -21,11 +23,29 @@ AF1BaseCharacter::AF1BaseCharacter()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComponent->SetupAttachment(SpringArmComponent);
+
+	HealthComponent = CreateDefaultSubobject<UF1HealthComponent>("HealthComponent");
+	HealthComponent->OnHealthChanged.AddUniqueDynamic(this, &ThisClass::OnHealthChangedHandler);
+	HealthComponent->OnDeath.AddUniqueDynamic(this, &ThisClass::OnDeathHandler);
+
+	TextRenderComponent = CreateDefaultSubobject<UTextRenderComponent>("HealthTextComponent");
+	TextRenderComponent->SetupAttachment(RootComponent);
+}
+
+void AF1BaseCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
 }
 
 void AF1BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	check(HealthComponent);
+	check(TextRenderComponent);
+	check(GetCharacterMovement());
+
+	LandedDelegate.AddUniqueDynamic(this, &ThisClass::OnLandedHandler);
 
 	if (const auto MovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
 	{
@@ -79,7 +99,7 @@ void AF1BaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		if (InputSettings->SprintAction)
 		{
-			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Started, this, &AF1BaseCharacter::StartSprint);
+			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Triggered, this, &AF1BaseCharacter::StartSprint);
 			EnhancedInputComponent->BindAction(InputSettings->SprintAction, ETriggerEvent::Completed, this, &AF1BaseCharacter::StopSprint);
 		}
 	}
@@ -163,6 +183,11 @@ void AF1BaseCharacter::Walk()
 
 void AF1BaseCharacter::StartSprint()
 {
+	if (bIsSprinting)
+	{
+		return;
+	}
+
 	bIsSprinting = true;
 
 	// TODO: Smooth speed acceleration?
@@ -181,5 +206,38 @@ void AF1BaseCharacter::StopSprint()
 	{
 		auto& CurSpeed = MovementComponent->MaxWalkSpeed;
 		CurSpeed = bIsWalking ? DefaultMaxSpeed * WalkMultiplier : DefaultMaxSpeed;
+	}
+}
+
+void AF1BaseCharacter::OnLandedHandler(const FHitResult& HitResult)
+{
+	const float ZVelocity = -GetVelocity().Z;
+	if (ZVelocity < LandedDamageVelocity.X)
+	{
+		return;
+	}
+
+	// TODO: Rework for health percent?
+	const float FinalDamage = FMath::GetMappedRangeValueClamped(LandedDamageVelocity, LandedDamage, ZVelocity);
+	TakeDamage(FinalDamage, FDamageEvent(), nullptr, nullptr);
+}
+
+void AF1BaseCharacter::OnHealthChangedHandler(float OldHealth, float NewHealth)
+{
+	TextRenderComponent->SetText(FText::FromString(FString::Printf(TEXT("%.1f"), NewHealth)));
+}
+
+void AF1BaseCharacter::OnDeathHandler()
+{
+	UE_LOG(F1LogBaseCharacter, Display, TEXT("Player %s is dead!"), *GetNameSafe(this));
+
+	PlayAnimMontage(DeathAnimMontage);
+
+	GetCharacterMovement()->DisableMovement();
+	SetLifeSpan(DeathLifeSpan);
+
+	if (Controller)
+	{
+		Controller->ChangeState(NAME_Spectating);
 	}
 }
